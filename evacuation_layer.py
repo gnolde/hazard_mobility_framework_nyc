@@ -83,7 +83,7 @@ def ctm_step(t, n, next_edge, flood_e, G, edge_index, origin_demand, first_edge,
         w      = G[u][v]["w"]
         cap    = G[u][v]["capacity"]
 
-        sf = choo_speed_factor(flood_e[idx])
+        sf = choo_speed_factor(flood_e[idx], FLOOD_CLOSURE_H)
         if sf <= 0:
             continue   # no entry allowed
 
