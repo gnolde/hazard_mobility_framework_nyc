@@ -58,9 +58,7 @@ def ctm_step(t, n, next_edge, flood_e, G, edge_index, origin_demand, first_edge,
     S = np.zeros((K, E))
     R = np.zeros(E)
 
-    # --------------------------
-    # SENDING  (ALLOW EXIT EVEN IF FLOODED)
-    # --------------------------
+    # sending (allow exit if flooded)
     for k in range(K):
         for (u, v), idx in edge_index.items():
             length = G[u][v]["length"]
@@ -78,9 +76,7 @@ def ctm_step(t, n, next_edge, flood_e, G, edge_index, origin_demand, first_edge,
                 n[k, idx]
             )
 
-    # --------------------------
-    # RECEIVING  (BLOCK ENTRY IF FLOODED)
-    # --------------------------
+    # receiving (block entry if flooded)
     for (u, v), idx in edge_index.items():
         length = G[u][v]["length"]
         k_jam  = G[u][v]["k_jam"]
@@ -94,9 +90,7 @@ def ctm_step(t, n, next_edge, flood_e, G, edge_index, origin_demand, first_edge,
         space = max(k_jam * length - n[:, idx].sum(), 0.0)
         R[idx] = min((w * DT / length) * space, cap * DT)
 
-    # --------------------------
-    # NODE FLOWS
-    # --------------------------
+    # node flows
     f = np.zeros((K, E, E))
     for k in range(K):
         for i in next_edge[k]:
@@ -108,18 +102,14 @@ def ctm_step(t, n, next_edge, flood_e, G, edge_index, origin_demand, first_edge,
         if D > R[j] and D > 0:
             f[:, :, j] *= R[j] / D
 
-    # --------------------------
-    # EXTERNAL INFLOW (BLOCKED BY RECEIVING)
-    # --------------------------
+    # external inflow 
     q_in = np.zeros((K, E))
     for k in range(K):
         e0 = first_edge[k]
         free = R[e0] - f[:, :, e0].sum()
         q_in[k, e0] = max(min(origin_demand[k](t), free), 0)
 
-    # --------------------------
-    # UPDATE STATE
-    # --------------------------
+    # update state
     n_next = n.copy()
     for k in range(K):
         for e in range(E):
@@ -129,9 +119,7 @@ def ctm_step(t, n, next_edge, flood_e, G, edge_index, origin_demand, first_edge,
     return n_next
 
 
-def reroute_all(G, edge_index, edge_list, OD_pairs, n, flood_e,
-                prev_next_edge=None, p_reroute=1.0, FLOOD_CLOSURE_H):
-
+def reroute_all(FLOOD_CLOSURE_H, G, edge_index, edge_list, OD_pairs, n, flood_e, prev_next_edge=None, p_reroute=1.0):
     K = len(OD_pairs)
     E = len(edge_list)
 
@@ -156,7 +144,6 @@ def reroute_all(G, edge_index, edge_list, OD_pairs, n, flood_e,
 
     for k, (o, d) in enumerate(OD_pairs):
 
-        # ---- THIS IS THE CONTROL YOU ASKED FOR ----
         if np.random.rand() > p_reroute:
             continue   # keep existing routing for OD pair k
 
